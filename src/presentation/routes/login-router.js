@@ -2,6 +2,7 @@
 /* eslint-disable consistent-return */
 const HttpResponse = require('../helpers/http-response');
 const MissingParamError = require('../helpers/missing-param-error');
+const UnauthorizedError = require('../helpers/unauthorized-error');
 
 module.exports = class LoginRouter {
   constructor(authUseCase) {
@@ -20,5 +21,6 @@ module.exports = class LoginRouter {
       return HttpResponse.badRequest(new MissingParamError('password'));
     }
     this.authUseCase.auth(email, password);
+    return HttpResponse.unauthorized(new UnauthorizedError());
   }
 };

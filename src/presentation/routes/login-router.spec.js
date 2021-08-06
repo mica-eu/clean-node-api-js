@@ -1,6 +1,6 @@
-/* eslint-disable class-methods-use-this */
 const LoginRouter = require('./login-router');
 const MissingParamError = require('../helpers/missing-param-error');
+const UnauthorizedError = require('../helpers/unauthorized-error');
 
 const makeSut = () => {
   class AuthUseCaseSpy {
@@ -62,5 +62,18 @@ describe('Login Router', () => {
     sut.route(httpRequest);
     expect(authUserCaseSpy.email).toBe(httpRequest.body.email);
     expect(authUserCaseSpy.password).toBe(httpRequest.body.password);
+  });
+
+  test('Should returns 401 if invalid credentials are provided', () => {
+    const { sut } = makeSut();
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password',
+      },
+    };
+    const httpResponse = sut.route(httpRequest);
+    expect(httpResponse.statusCode).toBe(401);
+    expect(httpResponse.body).toEqual(new UnauthorizedError());
   });
 });
