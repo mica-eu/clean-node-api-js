@@ -4,6 +4,12 @@ class LoginRouter {
   route(httpRequest) {
     const requiredFields = ['email', 'password'];
 
+    if (!httpRequest || !httpRequest.body) {
+      return {
+        statusCode: 500,
+      };
+    }
+
     const hasMissingParams = !requiredFields.every(
       (field) => Object.keys(httpRequest.body).includes(field),
     );
@@ -37,5 +43,11 @@ describe('Login Router', () => {
     };
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
+  });
+
+  test('Should return 500 if invalid httpRequest is provided', () => {
+    const sut = new LoginRouter();
+    const httpResponse = sut.route();
+    expect(httpResponse.statusCode).toBe(500);
   });
 });
