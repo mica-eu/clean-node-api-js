@@ -1,23 +1,38 @@
+/* eslint-disable max-classes-per-file */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable consistent-return */
+class MissingParamError extends Error {
+  constructor(paramName) {
+    super(`Missing param <${paramName}>`);
+    this.name = 'MissingParamError';
+  }
+}
+
+class HttpResponse {
+  static badRequest(message) {
+    return {
+      body: message,
+      statusCode: 400,
+    };
+  }
+
+  static internalError() {
+    return {
+      statusCode: 500,
+    };
+  }
+}
 class LoginRouter {
   route(httpRequest) {
-    const requiredFields = ['email', 'password'];
-
     if (!httpRequest || !httpRequest.body) {
-      return {
-        statusCode: 500,
-      };
+      return HttpResponse.internalError();
     }
-
-    const hasMissingParams = !requiredFields.every(
-      (field) => Object.keys(httpRequest.body).includes(field),
-    );
-
-    if (hasMissingParams) {
-      return {
-        statusCode: 400,
-      };
+    const { email, password } = httpRequest.body;
+    if (!email) {
+      return HttpResponse.badRequest(new MissingParamError('email'));
+    }
+    if (!password) {
+      return HttpResponse.badRequest(new MissingParamError('password'));
     }
   }
 }
@@ -32,6 +47,7 @@ describe('Login Router', () => {
     };
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(400);
+    expect(httpResponse.body).toEqual(new MissingParamError('email'));
   });
 
   test('Should return 400 if no password is provided', () => {
