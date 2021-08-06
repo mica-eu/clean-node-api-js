@@ -7,7 +7,7 @@ const makeSut = () => {
     auth(email, password) {
       this.email = email;
       this.password = password;
-      return 'accessToken';
+      return 'access_token';
     }
   }
   const authUserCaseSpy = new AuthUseCaseSpy();
@@ -89,6 +89,7 @@ describe('Login Router', () => {
     };
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(200);
+    expect(httpResponse.body.accessToken).toEqual(expect.any(String));
   });
 
   test('Should returns 500 if no AuthUseCase is provided', () => {
