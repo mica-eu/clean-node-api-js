@@ -7,6 +7,7 @@ const makeSut = () => {
     auth(email, password) {
       this.email = email;
       this.password = password;
+      return 'accessToken';
     }
   }
   const authUserCaseSpy = new AuthUseCaseSpy();
@@ -65,7 +66,8 @@ describe('Login Router', () => {
   });
 
   test('Should returns 401 if invalid credentials are provided', () => {
-    const { sut } = makeSut();
+    const { sut, authUserCaseSpy } = makeSut();
+    jest.spyOn(authUserCaseSpy, 'auth').mockReturnValueOnce(null);
     const httpRequest = {
       body: {
         email: 'any_email@mail.com',
@@ -75,5 +77,41 @@ describe('Login Router', () => {
     const httpResponse = sut.route(httpRequest);
     expect(httpResponse.statusCode).toBe(401);
     expect(httpResponse.body).toEqual(new UnauthorizedError());
+  });
+
+  test('Should returns 200 valid credentials are provided', () => {
+    const { sut } = makeSut();
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password',
+      },
+    };
+    const httpResponse = sut.route(httpRequest);
+    expect(httpResponse.statusCode).toBe(200);
+  });
+
+  test('Should returns 500 if no AuthUseCase is provided', () => {
+    const sut = new LoginRouter();
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password',
+      },
+    };
+    const httpResponse = sut.route(httpRequest);
+    expect(httpResponse.statusCode).toBe(500);
+  });
+
+  test('Should returns 500 if AuthUseCase has no auth method', () => {
+    const sut = new LoginRouter({});
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password',
+      },
+    };
+    const httpResponse = sut.route(httpRequest);
+    expect(httpResponse.statusCode).toBe(500);
   });
 });

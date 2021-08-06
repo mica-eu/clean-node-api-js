@@ -1,7 +1,7 @@
 module.exports = class HttpResponse {
-  static badRequest(message) {
+  static badRequest(body) {
     return {
-      body: message,
+      body,
       statusCode: 400,
     };
   }
@@ -12,10 +12,17 @@ module.exports = class HttpResponse {
     };
   }
 
-  static unauthorized(message) {
+  static unauthorized(body) {
     return {
-      body: message,
+      body,
       statusCode: 401,
+    };
+  }
+
+  static ok(body) {
+    return {
+      body,
+      statusCode: 200,
     };
   }
 };

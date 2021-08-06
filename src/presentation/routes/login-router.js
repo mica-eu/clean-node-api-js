@@ -10,7 +10,12 @@ module.exports = class LoginRouter {
   }
 
   route(httpRequest) {
-    if (!httpRequest || !httpRequest.body) {
+    if (
+      !httpRequest
+      || !httpRequest.body
+      || !this.authUseCase
+      || !this.authUseCase.auth
+    ) {
       return HttpResponse.internalError();
     }
     const { email, password } = httpRequest.body;
@@ -20,7 +25,10 @@ module.exports = class LoginRouter {
     if (!password) {
       return HttpResponse.badRequest(new MissingParamError('password'));
     }
-    this.authUseCase.auth(email, password);
-    return HttpResponse.unauthorized(new UnauthorizedError());
+    const accessToken = this.authUseCase.auth(email, password);
+    if (!accessToken) {
+      return HttpResponse.unauthorized(new UnauthorizedError());
+    }
+    return HttpResponse.ok();
   }
 };
