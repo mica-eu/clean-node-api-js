@@ -1,41 +1,5 @@
-/* eslint-disable max-classes-per-file */
-/* eslint-disable class-methods-use-this */
-/* eslint-disable consistent-return */
-class MissingParamError extends Error {
-  constructor(paramName) {
-    super(`Missing param <${paramName}>`);
-    this.name = 'MissingParamError';
-  }
-}
-
-class HttpResponse {
-  static badRequest(message) {
-    return {
-      body: message,
-      statusCode: 400,
-    };
-  }
-
-  static internalError() {
-    return {
-      statusCode: 500,
-    };
-  }
-}
-class LoginRouter {
-  route(httpRequest) {
-    if (!httpRequest || !httpRequest.body) {
-      return HttpResponse.internalError();
-    }
-    const { email, password } = httpRequest.body;
-    if (!email) {
-      return HttpResponse.badRequest(new MissingParamError('email'));
-    }
-    if (!password) {
-      return HttpResponse.badRequest(new MissingParamError('password'));
-    }
-  }
-}
+const LoginRouter = require('./login-router');
+const MissingParamError = require('../helpers/missing-param-error');
 
 describe('Login Router', () => {
   test('Should return 400 if no email is provided', () => {
