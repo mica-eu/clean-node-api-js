@@ -1,11 +1,5 @@
-/* eslint-disable class-methods-use-this */
 const validator = require('validator');
-
-class EmailValidator {
-  isValid(email) {
-    return validator.isEmail(email);
-  }
-}
+const EmailValidator = require('./email-validator');
 
 const makeSut = () => {
   const sut = new EmailValidator();
@@ -24,5 +18,11 @@ describe('EmailValidator', () => {
     const { sut } = makeSut();
     const isEmailValid = sut.isValid('invalid_email@email.com');
     expect(isEmailValid).toBe(false);
+  });
+
+  test('Should call validator with correct email', () => {
+    const { sut } = makeSut();
+    sut.isValid('any_email@email.com');
+    expect(validator.email).toBe('any_email@email.com');
   });
 });
