@@ -207,4 +207,17 @@ describe('Login Router', () => {
     expect(httpResponse.statusCode).toBe(500);
     expect(httpResponse.body).toEqual(new InternalServerError());
   });
+
+  test('Should EmailValidator with correct email', async () => {
+    const { sut, emailValidatorSpy } = makeSut();
+    const isValidSpy = jest.spyOn(emailValidatorSpy, 'isValid');
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password',
+      },
+    };
+    await sut.route(httpRequest);
+    expect(isValidSpy).toBeCalledWith('any_email@mail.com');
+  });
 });
