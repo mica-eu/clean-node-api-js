@@ -1,10 +1,12 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-classes-per-file */
 const LoginRouter = require('./login-router');
-const MissingParamError = require('../helpers/missing-param-error');
-const UnauthorizedError = require('../helpers/unauthorized-error');
-const InternalServerError = require('../helpers/internal-server-error');
-const InvalidParamError = require('../helpers/invalid-param-error');
+const {
+  MissingParamError,
+  UnauthorizedError,
+  InternalServerError,
+  InvalidParamError,
+} = require('../errors');
 
 const makeSut = () => {
   class AuthUseCaseSpy {
