@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable class-methods-use-this */
+/* eslint-disable */
 const AuthUseCase = require('./auth-usecase');
 const { MissingParamError } = require('../../utils/errors');
 
@@ -9,9 +8,15 @@ const makeSut = () => {
       return {};
     }
   }
+  class EncrypterSpy {
+    async compare(password, hashedPassowrd) {
+      return true;
+    }
+  }
   const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
-  const sut = new AuthUseCase(loadUserByEmailRepositorySpy);
-  return { sut, loadUserByEmailRepositorySpy };
+  const encrypterSpy = new EncrypterSpy();
+  const sut = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy);
+  return { sut, loadUserByEmailRepositorySpy, encrypterSpy };
 };
 
 describe('AuthUseCase', () => {
@@ -57,5 +62,13 @@ describe('AuthUseCase', () => {
     const { sut } = makeSut();
     const accessToken = await sut.auth('valid_email@email.com', 'invalid_password');
     expect(accessToken).toBeNull();
+  });
+
+  test('Should call Encrypter with correct values', async () => {
+    const { sut, loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
+    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockResolvedValueOnce({ password: '#123456789'})
+    const compareSpy = jest.spyOn(encrypterSpy, 'compare');
+    await sut.auth('valid_email@email.com', 'valid_password');
+    expect(compareSpy).toHaveBeenCalledWith('valid_password', '#123456789');
   });
 });
