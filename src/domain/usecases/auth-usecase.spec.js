@@ -65,12 +65,6 @@ describe('AuthUseCase', () => {
     expect(promise).rejects.toThrow();
   });
 
-  test('Should throw if no dependencieis provided', async () => {
-    const sut = new AuthUseCase();
-    const promise = sut.auth('valid_email@email.com', 'any_password');
-    expect(promise).rejects.toThrow();
-  });
-
   test('Should return null if an invalid email is provided', async () => {
     const { sut, loadUserByEmailRepositorySpy } = makeSut();
     jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockResolvedValueOnce(null);
@@ -106,5 +100,28 @@ describe('AuthUseCase', () => {
     const accessToken = await sut.auth('valid_email@email.com', 'valid_password');
     expect(accessToken).toBe('valid_access_token');
     expect(accessToken).toBeTruthy();
+  });
+
+  test('Should throws if invalid dependencies are provided', async () => {
+    const { loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
+    const suts = [
+      new AuthUseCase(),
+      new AuthUseCase({}),
+      new AuthUseCase({ loadUserByEmailRepository: {} }),
+      new AuthUseCase({ loadUserByEmailRepository: loadUserByEmailRepositorySpy }),
+      new AuthUseCase({
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy, 
+        encrypter: encrypterSpy,
+      }),
+      new AuthUseCase({
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy, 
+        encrypter: encrypterSpy,
+        tokenGenerator: {}
+      }),
+    ];
+    for (const sut of suts) {
+      const promise = sut.auth('any_email@email.com', 'any_password');
+      expect(promise).rejects.toThrow();
+    }
   });
 });
