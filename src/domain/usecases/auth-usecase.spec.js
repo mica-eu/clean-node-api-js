@@ -124,4 +124,26 @@ describe('AuthUseCase', () => {
       expect(promise).rejects.toThrow();
     }
   });
+
+  test('Should throws if any dependency throws', async () => {
+    const { loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
+    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockImplementationOnce(async () => {
+      throw new Error();
+    });
+    jest.spyOn(encrypterSpy, 'compare').mockImplementationOnce(async () => {
+      throw new Error();
+    });
+    jest.spyOn(tokenGeneratorSpy, 'generate').mockImplementationOnce(async () => {
+      throw new Error();
+    });
+    const suts = [
+      new AuthUseCase({ loadUserByEmailRepository: loadUserByEmailRepositorySpy }),
+      new AuthUseCase({ encrypter: encrypterSpy }),
+      new AuthUseCase({ tokenGenerator: tokenGeneratorSpy }),
+    ];
+    for (const sut of suts) {
+      const promise = sut.auth('any_email@email.com', 'any_password');
+      expect(promise).rejects.toThrow();
+    }
+  });
 });
