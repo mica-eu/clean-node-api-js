@@ -1,9 +1,10 @@
 const { MissingParamError } = require('../../utils/errors');
 
 module.exports = class AuthUseCase {
-  constructor(loadUserByEmailRepository, encrypter) {
+  constructor(loadUserByEmailRepository, encrypter, tokenGenerator) {
     this.loadUserByEmailRepository = loadUserByEmailRepository;
     this.encrypter = encrypter;
+    this.tokenGenerator = tokenGenerator;
   }
 
   // eslint-disable-next-line consistent-return
@@ -22,5 +23,6 @@ module.exports = class AuthUseCase {
     if (!isPasswordValid) {
       return null;
     }
+    await this.tokenGenerator.generate(user.id);
   }
 };

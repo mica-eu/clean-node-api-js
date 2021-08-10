@@ -5,7 +5,10 @@ const { MissingParamError } = require('../../utils/errors');
 const makeSut = () => {
   class LoadUserByEmailRepositorySpy {
     async load(email) {
-      return {};
+      return {
+        id: 'valid_id',
+        password: 'valid_password',
+      };
     }
   }
   class EncrypterSpy {
@@ -13,10 +16,16 @@ const makeSut = () => {
       return true;
     }
   }
+  class TokenGeneratorSpy {
+    async generate(userId) {
+      return 'valid_token';
+    }
+  }
   const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
   const encrypterSpy = new EncrypterSpy();
-  const sut = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy);
-  return { sut, loadUserByEmailRepositorySpy, encrypterSpy };
+  const tokenGeneratorSpy = new TokenGeneratorSpy();
+  const sut = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy);
+  return { sut, loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy };
 };
 
 describe('AuthUseCase', () => {
@@ -71,5 +80,12 @@ describe('AuthUseCase', () => {
     const compareSpy = jest.spyOn(encrypterSpy, 'compare');
     await sut.auth('valid_email@email.com', 'valid_password');
     expect(compareSpy).toHaveBeenCalledWith('valid_password', '#123456789');
+  });
+
+  test('Should call TokenGenerator with correct user id', async () => {
+    const { sut, tokenGeneratorSpy } = makeSut();
+    const generateSpy = jest.spyOn(tokenGeneratorSpy, 'generate');
+    await sut.auth('valid_email@email.com', 'valid_password');
+    expect(generateSpy).toHaveBeenCalledWith('valid_id');
   });
 });
