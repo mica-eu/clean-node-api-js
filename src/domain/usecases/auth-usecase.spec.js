@@ -12,6 +12,9 @@ const makeSut = () => {
       };
     }
   }
+  class UpdateAccessTokenRepositorySpy {
+    async update(userId, accessToken) {}
+  }
   class EncrypterSpy {
     async compare(password, hashedPassowrd) {
       return true;
@@ -23,14 +26,22 @@ const makeSut = () => {
     }
   }
   const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
+  const updateAccessTokenRepositorySpy = new UpdateAccessTokenRepositorySpy();
   const encrypterSpy = new EncrypterSpy();
   const tokenGeneratorSpy = new TokenGeneratorSpy();
   const sut = new AuthUseCase({
-    loadUserByEmailRepository: loadUserByEmailRepositorySpy, 
-    encrypter: encrypterSpy, 
-    tokenGenerator: tokenGeneratorSpy
+    loadUserByEmailRepository: loadUserByEmailRepositorySpy,
+    updateAccessTokenRepository: updateAccessTokenRepositorySpy,
+    encrypter: encrypterSpy,
+    tokenGenerator: tokenGeneratorSpy,
   });
-  return { sut, loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy };
+  return {
+    sut,
+    loadUserByEmailRepositorySpy,
+    updateAccessTokenRepositorySpy,
+    encrypterSpy,
+    tokenGeneratorSpy,
+  };
 };
 
 describe('AuthUseCase', () => {
@@ -67,21 +78,33 @@ describe('AuthUseCase', () => {
 
   test('Should return null if an invalid email is provided', async () => {
     const { sut, loadUserByEmailRepositorySpy } = makeSut();
-    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockResolvedValueOnce(null);
-    const accessToken = await sut.auth('invalid_email@email.com', 'any_password');
+    jest
+      .spyOn(loadUserByEmailRepositorySpy, 'load')
+      .mockResolvedValueOnce(null);
+    const accessToken = await sut.auth(
+      'invalid_email@email.com',
+      'any_password'
+    );
     expect(accessToken).toBeNull();
   });
-  
+
   test('Should return null if an invalid password is provided', async () => {
     const { sut, loadUserByEmailRepositorySpy } = makeSut();
-    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockResolvedValueOnce(null);
-    const accessToken = await sut.auth('valid_email@email.com', 'invalid_password');
+    jest
+      .spyOn(loadUserByEmailRepositorySpy, 'load')
+      .mockResolvedValueOnce(null);
+    const accessToken = await sut.auth(
+      'valid_email@email.com',
+      'invalid_password'
+    );
     expect(accessToken).toBeNull();
   });
 
   test('Should call Encrypter with correct values', async () => {
     const { sut, loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
-    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockResolvedValueOnce({ password: '#123456789'})
+    jest
+      .spyOn(loadUserByEmailRepositorySpy, 'load')
+      .mockResolvedValueOnce({ password: '#123456789' });
     const compareSpy = jest.spyOn(encrypterSpy, 'compare');
     await sut.auth('valid_email@email.com', 'valid_password');
     expect(compareSpy).toHaveBeenCalledWith('valid_password', '#123456789');
@@ -96,8 +119,13 @@ describe('AuthUseCase', () => {
 
   test('Should return an access token if correct credentials are provided', async () => {
     const { sut, tokenGeneratorSpy } = makeSut();
-    jest.spyOn(tokenGeneratorSpy, 'generate').mockResolvedValueOnce('valid_access_token');
-    const accessToken = await sut.auth('valid_email@email.com', 'valid_password');
+    jest
+      .spyOn(tokenGeneratorSpy, 'generate')
+      .mockResolvedValueOnce('valid_access_token');
+    const accessToken = await sut.auth(
+      'valid_email@email.com',
+      'valid_password'
+    );
     expect(accessToken).toBe('valid_access_token');
     expect(accessToken).toBeTruthy();
   });
@@ -108,15 +136,17 @@ describe('AuthUseCase', () => {
       new AuthUseCase(),
       new AuthUseCase({}),
       new AuthUseCase({ loadUserByEmailRepository: {} }),
-      new AuthUseCase({ loadUserByEmailRepository: loadUserByEmailRepositorySpy }),
       new AuthUseCase({
-        loadUserByEmailRepository: loadUserByEmailRepositorySpy, 
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy,
+      }),
+      new AuthUseCase({
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy,
         encrypter: encrypterSpy,
       }),
       new AuthUseCase({
-        loadUserByEmailRepository: loadUserByEmailRepositorySpy, 
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy,
         encrypter: encrypterSpy,
-        tokenGenerator: {}
+        tokenGenerator: {},
       }),
     ];
     for (const sut of suts) {
@@ -126,18 +156,25 @@ describe('AuthUseCase', () => {
   });
 
   test('Should throws if any dependency throws', async () => {
-    const { loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } = makeSut();
-    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockImplementationOnce(async () => {
-      throw new Error();
-    });
+    const { loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } =
+      makeSut();
+    jest
+      .spyOn(loadUserByEmailRepositorySpy, 'load')
+      .mockImplementationOnce(async () => {
+        throw new Error();
+      });
     jest.spyOn(encrypterSpy, 'compare').mockImplementationOnce(async () => {
       throw new Error();
     });
-    jest.spyOn(tokenGeneratorSpy, 'generate').mockImplementationOnce(async () => {
-      throw new Error();
-    });
+    jest
+      .spyOn(tokenGeneratorSpy, 'generate')
+      .mockImplementationOnce(async () => {
+        throw new Error();
+      });
     const suts = [
-      new AuthUseCase({ loadUserByEmailRepository: loadUserByEmailRepositorySpy }),
+      new AuthUseCase({
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy,
+      }),
       new AuthUseCase({ encrypter: encrypterSpy }),
       new AuthUseCase({ tokenGenerator: tokenGeneratorSpy }),
     ];
@@ -145,5 +182,23 @@ describe('AuthUseCase', () => {
       const promise = sut.auth('any_email@email.com', 'any_password');
       expect(promise).rejects.toThrow();
     }
+  });
+
+  test('Should call AccessTokenRepository with correct values', async () => {
+    const {
+      sut,
+      loadUserByEmailRepositorySpy,
+      updateAccessTokenRepositorySpy,
+      tokenGeneratorSpy,
+    } = makeSut();
+    jest
+      .spyOn(loadUserByEmailRepositorySpy, 'load')
+      .mockResolvedValueOnce({ id: 'valid_id', password: 'hashed_passowrd' });
+    jest
+      .spyOn(tokenGeneratorSpy, 'generate')
+      .mockResolvedValueOnce('valid_access_token');
+    const updateSpy = jest.spyOn(updateAccessTokenRepositorySpy, 'update');
+    await sut.auth('valid_email@email.com', 'valid_password');
+    expect(updateSpy).toHaveBeenCalledWith('valid_id', 'valid_access_token');
   });
 });
