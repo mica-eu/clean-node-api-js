@@ -57,9 +57,10 @@ describe('AuthUseCase', () => {
     const accessToken = await sut.auth('invalid_email@email.com', 'any_password');
     expect(accessToken).toBeNull();
   });
-
+  
   test('Should return null if an invalid password is provided', async () => {
-    const { sut } = makeSut();
+    const { sut, loadUserByEmailRepositorySpy } = makeSut();
+    jest.spyOn(loadUserByEmailRepositorySpy, 'load').mockResolvedValueOnce(null);
     const accessToken = await sut.auth('valid_email@email.com', 'invalid_password');
     expect(accessToken).toBeNull();
   });
