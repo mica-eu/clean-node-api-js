@@ -88,4 +88,12 @@ describe('AuthUseCase', () => {
     await sut.auth('valid_email@email.com', 'valid_password');
     expect(generateSpy).toHaveBeenCalledWith('valid_id');
   });
+
+  test('Should return an access token if correct credentials are probided', async () => {
+    const { sut, tokenGeneratorSpy } = makeSut();
+    jest.spyOn(tokenGeneratorSpy, 'generate').mockResolvedValueOnce('valid_access_token');
+    const accessToken = await sut.auth('valid_email@email.com', 'valid_password');
+    expect(accessToken).toBe('valid_access_token');
+    expect(accessToken).toBeTruthy();
+  });
 });
