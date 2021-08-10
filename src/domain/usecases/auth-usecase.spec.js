@@ -131,7 +131,12 @@ describe('AuthUseCase', () => {
   });
 
   test('Should throws if invalid dependencies are provided', async () => {
-    const { loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
+    const {
+      loadUserByEmailRepositorySpy,
+      updateAccessTokenRepositorySpy,
+      encrypterSpy,
+      tokenGeneratorSpy,
+    } = makeSut();
     const suts = [
       new AuthUseCase(),
       new AuthUseCase({}),
@@ -148,6 +153,12 @@ describe('AuthUseCase', () => {
         encrypter: encrypterSpy,
         tokenGenerator: {},
       }),
+      new AuthUseCase({
+        loadUserByEmailRepository: loadUserByEmailRepositorySpy,
+        encrypter: encrypterSpy,
+        tokenGenerator: tokenGeneratorSpy,
+        updateAccessTokenRepository: {},
+      }),
     ];
     for (const sut of suts) {
       const promise = sut.auth('any_email@email.com', 'any_password');
@@ -156,10 +167,19 @@ describe('AuthUseCase', () => {
   });
 
   test('Should throws if any dependency throws', async () => {
-    const { loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy } =
-      makeSut();
+    const {
+      loadUserByEmailRepositorySpy,
+      updateAccessTokenRepositorySpy,
+      encrypterSpy,
+      tokenGeneratorSpy,
+    } = makeSut();
     jest
       .spyOn(loadUserByEmailRepositorySpy, 'load')
+      .mockImplementationOnce(async () => {
+        throw new Error();
+      });
+    jest
+      .spyOn(updateAccessTokenRepositorySpy, 'update')
       .mockImplementationOnce(async () => {
         throw new Error();
       });
@@ -176,6 +196,7 @@ describe('AuthUseCase', () => {
         loadUserByEmailRepository: loadUserByEmailRepositorySpy,
       }),
       new AuthUseCase({ encrypter: encrypterSpy }),
+      new AuthUseCase({ tokenGenerator: tokenGeneratorSpy }),
       new AuthUseCase({ tokenGenerator: tokenGeneratorSpy }),
     ];
     for (const sut of suts) {
