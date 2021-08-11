@@ -1,14 +1,17 @@
-/* eslint-disable class-methods-use-this */
 const jwt = require('jsonwebtoken');
 
 class TokenGenerator {
+  constructor(secret) {
+    this.secret = secret;
+  }
+
   async generate(id) {
-    return jwt.sign(id, 'secret');
+    return jwt.sign(id, this.secret);
   }
 }
 
 const makeSut = () => {
-  const sut = new TokenGenerator();
+  const sut = new TokenGenerator('valid_secret#');
   return { sut };
 };
 
@@ -25,5 +28,12 @@ describe('TokenGenerator', () => {
     jest.spyOn(jwt, 'sign').mockReturnValueOnce('valid_jsonwebtoken');
     const token = await sut.generate('any_id');
     expect(token).toBe('valid_jsonwebtoken');
+  });
+
+  test('Should calls jwt with correct values', async () => {
+    const { sut } = makeSut();
+    const signSpy = jest.spyOn(jwt, 'sign');
+    await sut.generate('any_id');
+    expect(signSpy).toBeCalledWith('any_id', sut.secret);
   });
 });
