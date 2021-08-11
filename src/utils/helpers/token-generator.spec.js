@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { MissingParamError } = require('../errors');
 
 class TokenGenerator {
   constructor(secret) {
@@ -6,6 +7,12 @@ class TokenGenerator {
   }
 
   async generate(id) {
+    if (!this.secret) {
+      throw new MissingParamError('secret');
+    }
+    if (!id) {
+      throw new MissingParamError('id');
+    }
     return jwt.sign(id, this.secret);
   }
 }
@@ -35,5 +42,17 @@ describe('TokenGenerator', () => {
     const signSpy = jest.spyOn(jwt, 'sign');
     await sut.generate('any_id');
     expect(signSpy).toBeCalledWith('any_id', sut.secret);
+  });
+
+  test('Should throw if no secret is provided', async () => {
+    const sut = new TokenGenerator();
+    expect(sut.generate('valid_id')).rejects.toThrow(
+      new MissingParamError('secret'),
+    );
+  });
+
+  test('Should throw if no id is provided', async () => {
+    const { sut } = makeSut();
+    expect(sut.generate()).rejects.toThrow(new MissingParamError('id'));
   });
 });
