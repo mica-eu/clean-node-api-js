@@ -21,4 +21,11 @@ describe('Encrypter', () => {
     const isValid = await sut.compare('any_value', 'hash');
     expect(isValid).toBe(false);
   });
+
+  test('Shuld call bcrypt with correct values', async () => {
+    const sut = new Encrypter();
+    const compareSpy = jest.spyOn(bcrypt, 'compare');
+    await sut.compare('any_value', 'hash_value');
+    expect(compareSpy).toBeCalledWith('any_value', 'hash_value');
+  });
 });
