@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/micaelsouza/clean-node-api-js#readme",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/jest": "^26.0.24",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
@@ -32,6 +33,7 @@
     "lint-staged": "^11.1.1"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "validator": "^13.6.0"
   }
 }
