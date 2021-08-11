@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { MissingParamError } = require('./errors');
+const { MissingParamError } = require('../errors');
 
 module.exports = class Encrypter {
   // eslint-disable-next-line class-methods-use-this
