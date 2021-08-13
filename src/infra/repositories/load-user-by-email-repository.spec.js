@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const { MongoClient } = require('mongodb');
 
 let connection;
@@ -9,8 +10,12 @@ class LoadUserByEmailRepository {
   }
 
   async load(email) {
-    const user = await this.userModel.findOne({ email });
-    return user || null;
+    const user = await this.userModel.findOne(
+      { email },
+      { projection: { password: true } },
+    );
+    if (user) return user;
+    return null;
   }
 }
 
@@ -45,8 +50,18 @@ describe('LoadUserByEmailRepository', () => {
 
   test('Should return an user if user is found', async () => {
     const { sut, userModel } = makeSut();
-    await userModel.insertOne({ email: 'any_email@email.com' });
+    const userData = {
+      email: 'any_email@email.com',
+      name: 'any_name',
+      age: 50,
+      state: 'any_state',
+      password: 'hashed_password',
+    };
+    const { insertedId } = await userModel.insertOne(userData);
     const user = await sut.load('any_email@email.com');
-    expect(user.email).toBe('any_email@email.com');
+    expect(user).toEqual({
+      _id: insertedId,
+      password: userData.password,
+    });
   });
 });
