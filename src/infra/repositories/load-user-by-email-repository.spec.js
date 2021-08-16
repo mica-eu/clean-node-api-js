@@ -1,23 +1,8 @@
-/* eslint-disable no-underscore-dangle */
 const { MongoClient } = require('mongodb');
+const LoadUserByEmailRepository = require('./load-user-by-email-repository');
 
 let connection;
 let db;
-
-class LoadUserByEmailRepository {
-  constructor(userModel) {
-    this.userModel = userModel;
-  }
-
-  async load(email) {
-    const user = await this.userModel.findOne(
-      { email },
-      { projection: { password: true } },
-    );
-    if (user) return user;
-    return null;
-  }
-}
 
 const makeSut = () => {
   const userModel = db.collection('users');
