@@ -5,7 +5,6 @@ module.exports = class MongoHelper {
     Object.assign(this, {
       uri,
       dbName,
-      isConnected: false,
       connection: null,
       db: null,
     });
@@ -17,16 +16,16 @@ module.exports = class MongoHelper {
       useUnifiedTopology: true,
     });
     this.db = await this.connection.db(this.dbName);
-    this.isConnected = true;
   }
 
   async disconnect() {
     await this.connection.close();
-    this.isConnected = false;
+    this.connection = null;
+    this.db = null;
   }
 
   async getDB() {
-    if (!this.isConnected) {
+    if (!this.connection || !this.connection.isConnected()) {
       await this.connect(this.uri, this.dbName);
     }
     return this.db;
