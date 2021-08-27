@@ -20,11 +20,14 @@ const makeSut = () => {
     }
   }
 
-  const authUserCaseSpy = new AuthUseCaseSpy();
+  const authUseCaseSpy = new AuthUseCaseSpy();
   const emailValidatorSpy = new EmailValidatorSpy();
-  const sut = new LoginRouter(authUserCaseSpy, emailValidatorSpy);
+  const sut = new LoginRouter({
+    authUseCase: authUseCaseSpy,
+    emailValidator: emailValidatorSpy,
+  });
 
-  return { sut, authUserCaseSpy, emailValidatorSpy };
+  return { sut, authUseCaseSpy, emailValidatorSpy };
 };
 
 describe('Login Router', () => {
@@ -67,7 +70,7 @@ describe('Login Router', () => {
   });
 
   test('Should call AuthUserCase with correct params', async () => {
-    const { sut, authUserCaseSpy } = makeSut();
+    const { sut, authUseCaseSpy } = makeSut();
     const httpRequest = {
       body: {
         email: 'any_email@mail.com',
@@ -75,13 +78,13 @@ describe('Login Router', () => {
       },
     };
     await sut.route(httpRequest);
-    expect(authUserCaseSpy.email).toBe(httpRequest.body.email);
-    expect(authUserCaseSpy.password).toBe(httpRequest.body.password);
+    expect(authUseCaseSpy.email).toBe(httpRequest.body.email);
+    expect(authUseCaseSpy.password).toBe(httpRequest.body.password);
   });
 
   test('Should returns 401 if invalid credentials are provided', async () => {
-    const { sut, authUserCaseSpy } = makeSut();
-    jest.spyOn(authUserCaseSpy, 'auth').mockReturnValueOnce(null);
+    const { sut, authUseCaseSpy } = makeSut();
+    jest.spyOn(authUseCaseSpy, 'auth').mockReturnValueOnce(null);
     const httpRequest = {
       body: {
         email: 'any_email@mail.com',
@@ -107,7 +110,7 @@ describe('Login Router', () => {
   });
 
   test('Should returns 500 if no AuthUseCase is provided', async () => {
-    const sut = new LoginRouter();
+    const sut = new LoginRouter({});
     const httpRequest = {
       body: {
         email: 'any_email@mail.com',
@@ -133,8 +136,8 @@ describe('Login Router', () => {
   });
 
   test('Should returns 500 if AuthUseCase throws', async () => {
-    const { sut, authUserCaseSpy } = makeSut();
-    jest.spyOn(authUserCaseSpy, 'auth').mockImplementationOnce(async () => {
+    const { sut, authUseCaseSpy } = makeSut();
+    jest.spyOn(authUseCaseSpy, 'auth').mockImplementationOnce(async () => {
       throw new Error();
     });
     const httpRequest = {
@@ -163,8 +166,8 @@ describe('Login Router', () => {
   });
 
   test('Should returns 500 if no EmailValidator is provided', async () => {
-    const { authUserCaseSpy } = makeSut();
-    const sut = new LoginRouter(authUserCaseSpy);
+    const { authUseCaseSpy } = makeSut();
+    const sut = new LoginRouter(authUseCaseSpy);
     const httpRequest = {
       body: {
         email: 'any_email@mail.com',
@@ -177,8 +180,8 @@ describe('Login Router', () => {
   });
 
   test('Should returns 500 if no EmailValidator has no isValid method', async () => {
-    const { authUserCaseSpy } = makeSut();
-    const sut = new LoginRouter(authUserCaseSpy, {});
+    const { authUseCaseSpy } = makeSut();
+    const sut = new LoginRouter(authUseCaseSpy, {});
     const httpRequest = {
       body: {
         email: 'any_email@mail.com',
