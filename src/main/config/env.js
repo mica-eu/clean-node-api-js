@@ -1,1 +1,2 @@
-exports.mongoUrl = process.env.MONGO_URL;
+exports.mongoUrl =
+  process.env.MONGO_URL || 'mongodb://localhost:27017/clean-api';
